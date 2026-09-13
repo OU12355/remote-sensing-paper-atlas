@@ -1,0 +1,17 @@
+{
+  "name": "遥感论文雷达",
+  "short_name": "遥感雷达",
+  "description": "持续更新的遥感论文聚合、检索与追踪平台。",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f4",
+  "theme_color": "#0b6b5c",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

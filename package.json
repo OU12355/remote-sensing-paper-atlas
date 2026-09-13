@@ -1,0 +1,17 @@
+{
+  "name": "remote-sensing-paper-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A continuously updated, searchable atlas of remote sensing papers.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "update": "node scripts/update-papers.mjs",
+    "update:quick": "node scripts/update-papers.mjs --quick"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  }
+}

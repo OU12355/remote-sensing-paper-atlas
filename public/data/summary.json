@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-09-13T13:22:30.742Z",
+  "total": 2636,
+  "open_access": 1821,
+  "recent_7_days": 370,
+  "date_range": {
+    "earliest": "2016-09-15",
+    "latest": "2027-07-15"
+  },
+  "sources": [
+    "Crossref",
+    "OpenAlex"
+  ],
+  "source_status": {
+    "Crossref": {
+      "status": "ok",
+      "fetched": 2599
+    }
+  },
+  "topics": [
+    "SAR / InSAR",
+    "LiDAR / 点云",
+    "植被与农业",
+    "土壤与地质",
+    "基础模型与 AI",
+    "灾害与应急",
+    "土地与城市",
+    "定标与反演",
+    "高光谱",
+    "遥感基础",
+    "冰冻圈",
+    "无人机遥感",
+    "变化检测",
+    "大气遥感",
+    "目标检测与分割",
+    "影像融合与重建",
+    "海洋与水体",
+    "热红外"
+  ],
+  "topic_counts": {
+    "SAR / InSAR": 1239,
+    "LiDAR / 点云": 1009,
+    "植被与农业": 676,
+    "土壤与地质": 474,
+    "基础模型与 AI": 343,
+    "灾害与应急": 341,
+    "土地与城市": 315,
+    "定标与反演": 156,
+    "高光谱": 151,
+    "遥感基础": 119,
+    "冰冻圈": 116,
+    "无人机遥感": 110,
+    "变化检测": 102,
+    "大气遥感": 98,
+    "目标检测与分割": 60,
+    "影像融合与重建": 58,
+    "海洋与水体": 51,
+    "热红外": 34
+  },
+  "type_counts": {
+    "journal-article": 1250,
+    "article": 995,
+    "preprint": 192,
+    "dataset": 61,
+    "book-chapter": 29,
+    "peer-review": 20,
+    "review": 16,
+    "conference-paper": 12,
+    "software": 10,
+    "dissertation": 10,
+    "book": 8,
+    "data-paper": 8,
+    "other": 6,
+    "report": 5,
+    "editorial": 5,
+    "software-paper": 4,
+    "conference-abstract": 3,
+    "retraction": 1,
+    "letter": 1
+  },
+  "language_counts": {
+    "unknown": 1746,
+    "en": 880,
+    "tr": 5,
+    "zh": 3,
+    "es": 1,
+    "ENGLISH": 1
+  },
+  "update_schedule": "每天 03:17 UTC（约北京时间 11:17）"
+}

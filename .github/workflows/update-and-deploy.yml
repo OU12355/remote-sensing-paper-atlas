@@ -1,0 +1,77 @@
+name: Update papers and deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh paper index
+        run: npm run update
+        env:
+          ATLAS_MAILTO: ${{ github.repository_owner }}@users.noreply.github.com
+          ATLAS_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          ATLAS_BOOTSTRAP_THRESHOLD: "5000"
+          ATLAS_OPENALEX_PAGES: "2"
+          ATLAS_CROSSREF_PAGES: "5"
+          ATLAS_ARXIV_QUERIES: "12"
+
+      - name: Build website
+        run: npm run build
+        env:
+          ATLAS_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Persist refreshed data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          branch: ${{ github.ref_name }}
+          file_pattern: "public/data/*.json public/feed.xml public/robots.txt public/sitemap.xml"
+          commit_message: "data: refresh remote sensing paper index [skip ci]"
+          commit_user_name: "rs-paper-bot"
+          commit_user_email: "rs-paper-bot@users.noreply.github.com"
+          skip_dirty_check: false
