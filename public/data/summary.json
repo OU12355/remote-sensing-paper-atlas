@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-13T14:03:45.789Z",
-  "total": 3427,
-  "open_access": 2570,
-  "domestic_count": 0,
-  "chinese_count": 1,
-  "recent_7_days": 462,
+  "generated_at": "2026-09-13T14:05:00.092Z",
+  "total": 4670,
+  "open_access": 3693,
+  "domestic_count": 677,
+  "chinese_count": 16,
+  "recent_7_days": 479,
   "date_range": {
     "earliest": "2016-09-15",
     "latest": "2027-07-15"
@@ -14,85 +14,99 @@
     "OpenAlex"
   ],
   "source_counts": {
-    "OpenAlex": 2177,
-    "Crossref": 1250
+    "Crossref": 2349,
+    "OpenAlex": 2321
   },
-  "domestic_source_counts": {},
+  "domestic_source_counts": {
+    "OpenAlex": 677
+  },
   "source_status": {
     "ManualImports": {
       "status": "ok",
       "files": 0,
       "fetched": 0,
       "errors": 0
+    },
+    "OpenAlex": {
+      "status": "ok",
+      "fetched": 11588
+    },
+    "Crossref": {
+      "status": "ok",
+      "fetched": 15900
+    },
+    "arXiv": {
+      "status": "ok",
+      "fetched": 0
     }
   },
   "topics": [
     "植被与农业",
     "遥感基础",
-    "土壤与地质",
-    "基础模型与 AI",
-    "LiDAR / 点云",
     "SAR / InSAR",
+    "LiDAR / 点云",
+    "土壤与地质",
     "土地与城市",
+    "基础模型与 AI",
+    "高光谱",
     "灾害与应急",
     "定标与反演",
+    "目标检测与分割",
     "无人机遥感",
     "冰冻圈",
-    "高光谱",
-    "变化检测",
     "大气遥感",
-    "目标检测与分割",
-    "影像融合与重建",
+    "变化检测",
+    "热红外",
     "海洋与水体",
-    "热红外"
+    "影像融合与重建"
   ],
   "topic_counts": {
-    "植被与农业": 1096,
-    "遥感基础": 1022,
-    "土壤与地质": 662,
-    "基础模型与 AI": 555,
-    "LiDAR / 点云": 544,
-    "SAR / InSAR": 522,
-    "土地与城市": 513,
-    "灾害与应急": 472,
-    "定标与反演": 256,
-    "无人机遥感": 224,
-    "冰冻圈": 197,
-    "高光谱": 169,
-    "变化检测": 169,
-    "大气遥感": 146,
-    "目标检测与分割": 118,
-    "影像融合与重建": 87,
-    "海洋与水体": 81,
-    "热红外": 73
+    "植被与农业": 1424,
+    "遥感基础": 1330,
+    "SAR / InSAR": 885,
+    "LiDAR / 点云": 822,
+    "土壤与地质": 723,
+    "土地与城市": 681,
+    "基础模型与 AI": 627,
+    "高光谱": 591,
+    "灾害与应急": 526,
+    "定标与反演": 332,
+    "目标检测与分割": 324,
+    "无人机遥感": 299,
+    "冰冻圈": 298,
+    "大气遥感": 290,
+    "变化检测": 234,
+    "热红外": 204,
+    "海洋与水体": 203,
+    "影像融合与重建": 153
   },
   "type_counts": {
-    "article": 1573,
-    "journal-article": 1250,
-    "preprint": 308,
-    "dataset": 89,
-    "book-chapter": 38,
-    "peer-review": 31,
+    "journal-article": 2349,
+    "article": 1693,
+    "preprint": 313,
+    "dataset": 97,
+    "book-chapter": 39,
+    "peer-review": 35,
     "review": 25,
-    "conference-paper": 20,
+    "conference-paper": 22,
     "dissertation": 16,
-    "data-paper": 15,
+    "data-paper": 16,
     "software": 14,
     "other": 9,
-    "editorial": 8,
+    "editorial": 9,
     "book": 8,
+    "conference-abstract": 7,
     "software-paper": 7,
     "report": 6,
-    "conference-abstract": 5,
     "supplementary-materials": 2,
     "retraction": 1,
     "letter": 1,
     "reference-entry": 1
   },
   "language_counts": {
-    "en": 3425,
-    "ja": 1,
-    "zh": 1
+    "en": 4653,
+    "zh": 16,
+    "ja": 1
   },
   "update_schedule": "每天 03:17 UTC（约北京时间 11:17）"
 }
