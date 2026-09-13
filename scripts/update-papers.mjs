@@ -610,21 +610,31 @@ function buildSitemap() {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>${xmlEscape(SITE_URL)}</loc>\n    <lastmod>${TODAY}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n</urlset>\n`;
 }
 
+function compactPaperForOutput(paper) {
+  const { query_hits, ...compact } = paper;
+  return {
+    ...compact,
+    abstract: truncate(paper.abstract, 2200),
+    authors: (paper.authors || []).slice(0, 60).map((author) => ({ name: cleanText(author.name || author) })).filter((author) => author.name),
+    keywords: (paper.keywords || []).map((keyword) => truncate(keyword, 100)).filter(Boolean).slice(0, 8)
+  };
+}
 async function writeOutputs(papers, sourceStatus) {
   await mkdir(DATA_DIR, { recursive: true });
-  const summary = buildSummary(papers, sourceStatus);
+  const outputPapers = papers.map(compactPaperForOutput);
+  const summary = buildSummary(outputPapers, sourceStatus);
   const payload = {
     generated_at: NOW.toISOString(),
     schema_version: 1,
     title: "遥感论文雷达",
     description: "多源开放学术记录聚合的遥感论文索引",
     ...summary,
-    papers
+    papers: outputPapers
   };
   const writes = [
     writeFile(OUTPUT_FILE, JSON.stringify(payload), "utf8"),
     writeFile(SUMMARY_FILE, JSON.stringify(summary, null, 2), "utf8"),
-    writeFile(RSS_FILE, buildRss(papers), "utf8"),
+    writeFile(RSS_FILE, buildRss(outputPapers), "utf8"),
     writeFile(ROBOTS_FILE, `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}sitemap.xml\n`, "utf8"),
     writeFile(SITEMAP_FILE, buildSitemap(), "utf8")
   ];

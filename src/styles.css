@@ -224,4 +224,9 @@ footer > a { color: var(--primary); }
   .method { padding: 28px 20px; border-radius: 22px; }
   .method-grid { grid-template-columns: 1fr; }
   footer { align-items: flex-start; flex-direction: column; gap: 15px; }
-}
+}.loading-state { grid-column: 1 / -1; min-height: 360px; display: grid; place-content: center; justify-items: center; padding: 60px 20px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.loading-state h3 { margin: 20px 0 8px; font-family: var(--serif); font-size: 20px; }
+.loading-state p { max-width: 480px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.loading-radar { width: 58px; aspect-ratio: 1; position: relative; border: 2px solid var(--primary); border-radius: 50%; box-shadow: inset 0 0 0 13px color-mix(in srgb, var(--primary) 10%, transparent); }
+.loading-radar::before { content: ""; position: absolute; left: 50%; top: 50%; width: 27px; border-top: 2px solid var(--accent); transform-origin: left; animation: bootSpin 1.1s linear infinite; }
+.loading-radar::after { content: ""; position: absolute; left: 50%; top: 50%; width: 7px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: var(--primary); }

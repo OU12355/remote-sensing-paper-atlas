@@ -180,7 +180,13 @@ function renderShell() {
           </div>
           <div class="filter-footer"><button type="button" class="reset-button" id="resetFilters">清除筛选</button><span id="activeFilterText"></span></div>
         </div>
-        <div id="paperGrid" class="paper-grid"></div>
+        <div id="paperGrid" class="paper-grid">
+          <div class="loading-state">
+            <div class="loading-radar"></div>
+            <h3>正在同步论文索引</h3>
+            <p>首次访问需要加载开放论文数据，完成后浏览器会缓存，后续检索会明显更快。</p>
+          </div>
+        </div>
         <div id="emptyState" class="empty-state" hidden>
           <div>${icons.search}</div><h3>没有找到匹配论文</h3><p>尝试减少关键词、清除筛选，或使用更宽泛的英文检索词。</p><button type="button" id="emptyReset">清除全部条件</button>
         </div>
@@ -213,9 +219,24 @@ function renderShell() {
   applyTheme(getInitialTheme());
 }
 
+async function fetchPaperData(url) {
+  if (!("caches" in window)) return fetch(url, { cache: "no-cache" });
+  const cache = await caches.open("rs-paper-atlas-data-v2");
+  const cached = await cache.match(url);
+  if (cached) {
+    fetch(url, { cache: "no-cache" })
+      .then((fresh) => { if (fresh.ok) return cache.put(url, fresh.clone()); })
+      .catch(() => {});
+    return cached;
+  }
+  const response = await fetch(url, { cache: "no-cache" });
+  if (response.ok) await cache.put(url, response.clone());
+  return response;
+}
+
 async function loadData() {
   try {
-    const response = await fetch(new URL("data/papers.json", document.baseURI), { cache: "no-cache" });
+    const response = await fetchPaperData(new URL("data/papers.json", document.baseURI));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state.data = await response.json();
     state.papers = Array.isArray(state.data.papers) ? state.data.papers : [];
