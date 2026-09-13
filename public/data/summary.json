@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-13T13:34:01.824Z",
-  "total": 3421,
-  "open_access": 2564,
-  "recent_7_days": 460,
+  "generated_at": "2026-09-13T13:34:28.693Z",
+  "total": 3427,
+  "open_access": 2570,
+  "recent_7_days": 462,
   "date_range": {
     "earliest": "2016-09-15",
     "latest": "2027-07-15"
@@ -11,7 +11,20 @@
     "Crossref",
     "OpenAlex"
   ],
-  "source_status": {},
+  "source_status": {
+    "OpenAlex": {
+      "status": "ok",
+      "fetched": 10388
+    },
+    "Crossref": {
+      "status": "ok",
+      "fetched": 12999
+    },
+    "arXiv": {
+      "status": "ok",
+      "fetched": 0
+    }
+  },
   "topics": [
     "SAR / InSAR",
     "LiDAR / 点云",
@@ -33,42 +46,42 @@
     "热红外"
   ],
   "topic_counts": {
-    "SAR / InSAR": 1281,
+    "SAR / InSAR": 1282,
     "LiDAR / 点云": 1280,
-    "植被与农业": 1119,
-    "土壤与地质": 662,
-    "基础模型与 AI": 551,
-    "土地与城市": 516,
-    "灾害与应急": 469,
-    "定标与反演": 253,
-    "无人机遥感": 222,
-    "冰冻圈": 198,
+    "植被与农业": 1127,
+    "土壤与地质": 667,
+    "基础模型与 AI": 553,
+    "土地与城市": 521,
+    "灾害与应急": 471,
+    "定标与反演": 256,
+    "无人机遥感": 223,
+    "冰冻圈": 199,
     "高光谱": 175,
     "变化检测": 171,
     "大气遥感": 144,
     "遥感基础": 139,
-    "目标检测与分割": 122,
+    "目标检测与分割": 124,
     "影像融合与重建": 88,
-    "海洋与水体": 85,
+    "海洋与水体": 88,
     "热红外": 73
   },
   "type_counts": {
-    "article": 1571,
+    "article": 1573,
     "journal-article": 1250,
     "preprint": 308,
     "dataset": 89,
     "book-chapter": 38,
     "peer-review": 31,
     "review": 25,
-    "conference-paper": 19,
+    "conference-paper": 20,
     "dissertation": 16,
     "data-paper": 15,
     "software": 14,
-    "other": 8,
+    "other": 9,
+    "editorial": 8,
     "book": 8,
     "software-paper": 7,
     "report": 6,
-    "editorial": 6,
     "conference-abstract": 5,
     "supplementary-materials": 2,
     "retraction": 1,
@@ -76,8 +89,8 @@
     "reference-entry": 1
   },
   "language_counts": {
-    "unknown": 1989,
-    "en": 1412,
+    "unknown": 1992,
+    "en": 1415,
     "zh": 7,
     "tr": 5,
     "es": 3,
