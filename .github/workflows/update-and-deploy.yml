@@ -45,7 +45,7 @@ jobs:
           ATLAS_BOOTSTRAP_THRESHOLD: "5000"
           ATLAS_OPENALEX_PAGES: "2"
           ATLAS_CROSSREF_PAGES: "5"
-          ATLAS_ARXIV_QUERIES: "12"
+          ATLAS_ARXIV_QUERIES: "3"
 
       - name: Build website
         run: npm run build

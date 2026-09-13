@@ -208,8 +208,8 @@ function isValidPaperDate(value) {
   throw new Error(`${label} failed: ${lastError?.message || "unknown error"}`);
 }
 
-async function fetchJson(url, label) {
-  const text = await fetchText(url, { accept: "application/json" }, label);
+async function fetchJson(url, label, options = {}) {
+  const text = await fetchText(url, { accept: "application/json", ...options }, label);
   return JSON.parse(text);
 }
 
@@ -300,7 +300,7 @@ async function fetchOpenAlex(existingCount) {
         select: "id,doi,title,display_name,authorships,publication_date,primary_location,best_oa_location,open_access,type,type_crossref,topics,keywords,cited_by_count,language,abstract_inverted_index",
         mailto: MAILTO
       });
-      const payload = await fetchJson(`https://api.openalex.org/works?${params}`, `OpenAlex ${query.key} page ${page + 1}`);
+      const payload = await fetchJson(`https://api.openalex.org/works?${params}`, `OpenAlex ${query.key} page ${page + 1}`, { retries: QUICK ? 1 : 2 });
       for (const work of payload.results || []) {
         const paper = openAlexToPaper(work, query);
         if (paper) found.push(paper);
@@ -375,7 +375,7 @@ async function fetchCrossref(existingCount) {
         select: "DOI,title,author,abstract,URL,published,published-online,published-print,issued,created,container-title,short-container-title,type,subject,is-referenced-by-count,link,license,publisher",
         mailto: MAILTO
       });
-      const payload = await fetchJson(`https://api.crossref.org/works?${params}`, `Crossref ${query.key} page ${page + 1}`);
+      const payload = await fetchJson(`https://api.crossref.org/works?${params}`, `Crossref ${query.key} page ${page + 1}`, { retries: QUICK ? 1 : 2 });
       for (const item of payload.message?.items || []) {
         const paper = crossrefToPaper(item, query);
         if (paper) found.push(paper);
@@ -427,7 +427,7 @@ async function fetchArxiv() {
         sortBy: "submittedDate",
         sortOrder: "descending"
       });
-      const xml = await fetchText(`https://export.arxiv.org/api/query?${params}`, { accept: "application/atom+xml", retries: QUICK ? 1 : 4 }, `arXiv ${query.key}`);
+      const xml = await fetchText(`https://export.arxiv.org/api/query?${params}`, { accept: "application/atom+xml", retries: QUICK ? 1 : 2 }, `arXiv ${query.key}`);
       for (const item of parseArxivEntries(xml)) {
         const publishedDate = item.published.slice(0, 10);
         const title = cleanText(item.title);
