@@ -81,7 +81,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .radar-label { position: absolute; padding: 6px 10px; border: 1px solid var(--line); border-radius: 99px; background: color-mix(in srgb, var(--surface) 90%, transparent); color: var(--muted); font-size: 10px; letter-spacing: .06em; box-shadow: 0 8px 20px rgba(20, 60, 50, .08); }
 .label-a { left: -1%; top: 26%; } .label-b { right: -2%; top: 46%; } .label-c { left: 22%; bottom: 5%; }
 
-.stats-strip { width: min(1240px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 12px 35px rgba(25, 58, 48, .05); }
+.stats-strip { width: min(1240px, calc(100% - 40px)); margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 12px 35px rgba(25, 58, 48, .05); }
 .stats-strip article { min-height: 102px; padding: 22px 28px; display: flex; align-items: center; gap: 15px; border-right: 1px solid var(--line); }
 .stats-strip article:last-child { border-right: 0; }
 .stat-icon { width: 42px; aspect-ratio: 1; display: grid; place-items: center; flex: 0 0 auto; border-radius: 14px; color: var(--primary); background: var(--surface-soft); }
@@ -111,7 +111,7 @@ kbd { padding: 4px 8px; border: 1px solid var(--line); border-bottom-width: 2px;
 .select-field span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; }
 .select-field select { width: 100%; height: 42px; padding: 0 34px 0 12px; border: 1px solid var(--line); border-radius: 11px; outline: none; background: var(--surface-soft); color: var(--text); cursor: pointer; }
 .select-field select:focus { border-color: var(--primary); }
-.toggle-fields { display: flex; align-items: center; gap: 18px; padding: 18px 4px 0; }
+.toggle-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 18px 4px 0; }
 .check-field { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; cursor: pointer; }
 .check-field input { position: absolute; opacity: 0; pointer-events: none; }
 .check-field span { width: 18px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-soft); }
@@ -131,6 +131,8 @@ kbd { padding: 4px 8px; border: 1px solid var(--line); border-bottom-width: 2px;
 .badge.new { color: var(--warning); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .badge.oa { color: var(--primary); background: color-mix(in srgb, var(--primary) 11%, transparent); }
 .badge.source { color: var(--muted); background: var(--surface-soft); letter-spacing: .03em; }
+.badge.cn { color: #fff; background: #b6453f; }
+.badge.zh { color: #fff; background: #84612f; }
 .favorite-button { flex: 0 0 auto; width: 32px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; }
 .favorite-button:hover, .favorite-button.active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .favorite-button.active svg { fill: currentColor; }
@@ -184,8 +186,9 @@ footer > a { color: var(--primary); }
   .hero-copy { max-width: 760px; }
   .radar-panel { width: min(72vw, 410px); margin-top: -20px; }
   .stats-strip { grid-template-columns: repeat(2, 1fr); }
-  .stats-strip article:nth-child(2) { border-right: 0; }
-  .stats-strip article:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .stats-strip article { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .stats-strip article:nth-child(2n) { border-right: 0; }
+  .stats-strip article:last-child { border-right: 0; border-bottom: 0; }
   .paper-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .toggle-fields { padding-top: 0; }

@@ -4,6 +4,8 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadManualImports } from "./import-papers.mjs";
+import { mergeImportSource, normalizePaperMetadata } from "./paper-utils.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -13,6 +15,7 @@ const RSS_FILE = path.join(ROOT, "public", "feed.xml");
 const SUMMARY_FILE = path.join(DATA_DIR, "summary.json");
 const ROBOTS_FILE = path.join(ROOT, "public", "robots.txt");
 const SITEMAP_FILE = path.join(ROOT, "public", "sitemap.xml");
+const IMPORTS_DIR = path.join(ROOT, "imports");
 const QUICK = process.argv.includes("--quick");
 const NOW = new Date();
 const TODAY = isoDate(NOW);
@@ -50,28 +53,57 @@ const QUERIES = [
   { key: "urban", label: "城市遥感", q: "urban remote sensing" }
 ];
 
+const CHINESE_QUERIES = [
+  { key: "zh-remote-sensing", label: "中文遥感", q: "遥感", chinese: true, core: true },
+  { key: "zh-earth-observation", label: "中文地球观测", q: "对地观测", chinese: true, core: true },
+  { key: "zh-satellite", label: "中文卫星遥感", q: "卫星遥感", chinese: true, core: true },
+  { key: "zh-hyperspectral", label: "中文高光谱", q: "高光谱遥感", chinese: true, core: true },
+  { key: "zh-sar", label: "中文合成孔径雷达", q: "合成孔径雷达", chinese: true, core: true },
+  { key: "zh-lidar", label: "中文激光雷达", q: "激光雷达遥感", chinese: true, core: true },
+  { key: "zh-change", label: "中文变化检测", q: "遥感变化检测", chinese: true, core: true },
+  { key: "zh-agriculture", label: "中文农业遥感", q: "农业遥感", chinese: true, core: true },
+  { key: "zh-urban", label: "中文城市遥感", q: "城市遥感", chinese: true, core: true }
+];
+
+const DOMESTIC_OPENALEX_QUERIES = [
+  { key: "cn-remote-sensing", label: "中国机构遥感", q: "remote sensing", core: true },
+  { key: "cn-earth-observation", label: "中国机构地球观测", q: "earth observation", core: true },
+  { key: "cn-satellite-imagery", label: "中国机构卫星影像", q: "satellite imagery", core: true },
+  { key: "cn-sar", label: "中国机构SAR", q: "synthetic aperture radar", core: true },
+  { key: "cn-hyperspectral", label: "中国机构高光谱", q: "hyperspectral remote sensing", core: true },
+  { key: "cn-lidar", label: "中国机构LiDAR", q: "LiDAR remote sensing", core: true }
+];
+
+const CROSSREF_JOURNALS = [
+  { key: "journal-remote-sensing", label: "遥感学报", issn: "1007-4619" },
+  { key: "journal-radars", label: "雷达学报", issn: "2095-283X" },
+  { key: "journal-image-graphics", label: "中国图象图形学报", issn: "1006-8961" }
+];
 const TOPIC_RULES = [
-  { name: "SAR / InSAR", pattern: /synthetic aperture radar|\binsar\b|\bsar\b|interferometr|polarimetr|radar remote sensing/i },
-  { name: "高光谱", pattern: /hyperspectral|imaging spectroscopy|spectral unmixing|spectral library/i },
-  { name: "LiDAR / 点云", pattern: /\blidar\b|airborne laser|point cloud|laser scanning|photogrammetr/i },
-  { name: "热红外", pattern: /thermal infrared|land surface temperature|\bthermal remote/i },
-  { name: "大气遥感", pattern: /atmospheric remote|atmosphere|aerosol|cloud propert|trace gas|air quality/i },
-  { name: "海洋与水体", pattern: /ocean color|ocean remote|sea surface|water quality|inland water|coastal water/i },
-  { name: "植被与农业", pattern: /vegetation|forest|agricultur|crop|leaf area|phenolog|grassland|yield estim/i },
-  { name: "土地与城市", pattern: /land cover|land use|urban|built-up|impervious|city mapping/i },
-  { name: "变化检测", pattern: /change detection|change monitoring|time series analysis|multi-temporal|multitemporal/i },
-  { name: "灾害与应急", pattern: /disaster|earthquake|landslide|wildfire|flood|drought|hurricane|emergency mapping/i },
-  { name: "冰冻圈", pattern: /snow|glacier|ice sheet|sea ice|permafrost|cryosphere/i },
-  { name: "土壤与地质", pattern: /soil|geolog|mineral mapping|rock|erosion|subsidence/i },
-  { name: "目标检测与分割", pattern: /object detection|semantic segmentation|instance segmentation|scene classification|target recognition/i },
-  { name: "基础模型与 AI", pattern: /foundation model|large language model|vision transformer|self-supervised|deep learning|machine learning|neural network/i },
-  { name: "影像融合与重建", pattern: /image fusion|pan-sharpening|super-resolution|data fusion|image reconstruction|cloud removal/i },
-  { name: "定标与反演", pattern: /calibration|radiometric|atmospheric correction|retrieval algorithm|inversion|reflectance/i },
-  { name: "无人机遥感", pattern: /\buav\b|unmanned aerial|drone|airborne remote/i }
+  { name: "SAR / InSAR", pattern: /synthetic aperture radar|\binsar\b|\bsar\b|interferometr|polarimetr|radar remote sensing|合成孔径雷达|干涉合成孔径雷达|干涉测量|极化雷达|雷达遥感|雷达成像/i },
+  { name: "高光谱", pattern: /hyperspectral|imaging spectroscopy|spectral unmixing|spectral library|高光谱|光谱解混|成像光谱/i },
+  { name: "LiDAR / 点云", pattern: /\blidar\b|airborne laser|point cloud|laser scanning|photogrammetr|激光雷达|机载激光|点云|摄影测量/i },
+  { name: "热红外", pattern: /thermal infrared|land surface temperature|\bthermal remote|热红外|地表温度/i },
+  { name: "大气遥感", pattern: /atmospheric remote|atmosphere|aerosol|cloud propert|trace gas|air quality|大气遥感|气溶胶|云特性|痕量气体|空气质量/i },
+  { name: "海洋与水体", pattern: /ocean color|ocean remote|sea surface|water quality|inland water|coastal water|海洋水色|海表|水质|内陆水体|近岸水体|海洋遥感/i },
+  { name: "植被与农业", pattern: /vegetation|forest|agricultur|crop|leaf area|phenolog|grassland|yield estim|植被|森林|农作物|作物|叶面积|物候|草地|产量估算|农业遥感/i },
+  { name: "土地与城市", pattern: /land cover|land use|urban|built-up|impervious|city mapping|土地覆盖|土地利用|城市|建成区|不透水面|城市遥感/i },
+  { name: "变化检测", pattern: /change detection|change monitoring|time series analysis|multi-temporal|multitemporal|变化检测|变化监测|时间序列分析|多时相/i },
+  { name: "灾害与应急", pattern: /disaster|earthquake|landslide|wildfire|flood|drought|hurricane|emergency mapping|灾害|地震|滑坡|野火|洪涝|洪水|干旱|台风|应急测绘/i },
+  { name: "冰冻圈", pattern: /snow|glacier|ice sheet|sea ice|permafrost|cryosphere|积雪|冰川|冰盖|海冰|冻土|冰冻圈/i },
+  { name: "土壤与地质", pattern: /soil|geolog|mineral mapping|rock|erosion|subsidence|土壤|地质|矿物填图|岩石|侵蚀|沉降/i },
+  { name: "目标检测与分割", pattern: /object detection|semantic segmentation|instance segmentation|scene classification|target recognition|目标检测|语义分割|实例分割|场景分类|目标识别/i },
+  { name: "基础模型与 AI", pattern: /foundation model|large language model|vision transformer|self-supervised|deep learning|machine learning|neural network|基础模型|大语言模型|视觉变换器|自监督|深度学习|机器学习|神经网络/i },
+  { name: "影像融合与重建", pattern: /image fusion|pan-sharpening|super-resolution|data fusion|image reconstruction|cloud removal|图像融合|影像融合|全色锐化|超分辨率|数据融合|图像重建|去云|影像重建/i },
+  { name: "定标与反演", pattern: /calibration|radiometric|atmospheric correction|retrieval algorithm|inversion|reflectance|定标|辐射定标|大气校正|反演|反射率/i },
+  { name: "无人机遥感", pattern: /\buav\b|unmanned aerial|drone|airborne remote|无人机|无人飞行器|航拍|机载遥感/i }
 ];
 
 const ENABLED_SOURCES = new Set(String(process.env.ATLAS_SOURCES || "OpenAlex,Crossref,arXiv").split(",").map((value) => value.trim()).filter(Boolean));
 const ACTIVE_QUERIES = QUERIES.slice(0, Math.max(1, Number(process.env.ATLAS_QUERY_LIMIT || QUERIES.length)));
+const ACTIVE_CHINESE_QUERIES = CHINESE_QUERIES.slice(0, Math.max(0, Number(process.env.ATLAS_CHINESE_QUERY_LIMIT ?? CHINESE_QUERIES.length)));
+const ACTIVE_DOMESTIC_QUERIES = DOMESTIC_OPENALEX_QUERIES.slice(0, Math.max(0, Number(process.env.ATLAS_DOMESTIC_QUERIES ?? DOMESTIC_OPENALEX_QUERIES.length)));
+const CROSSREF_QUERIES = [...ACTIVE_QUERIES, ...ACTIVE_CHINESE_QUERIES, ...CROSSREF_JOURNALS];
 
 const SOURCE_LABELS = {
   OpenAlex: "OpenAlex",
@@ -161,13 +193,12 @@ function isRelevantPaper(paper) {
   const text = [
     paper.title,
     paper.abstract,
-    ...(paper.keywords || []),
-    ...(paper.query_hits || [])
+    ...(paper.keywords || [])
   ].filter(Boolean).join(" ").toLocaleLowerCase();
-  const strong = /remote sensing|earth observation|satellite remote|spaceborne remote|airborne remote|aerial remote|satellite imagery|satellite image|hyperspectral imag|multispectral imag|radar imagery|interferometric synthetic aperture radar/;
-  const technique = /\bhyperspectral\b|\bmultispectral\b|synthetic aperture radar|\binsar\b|\blidar\b|photogrammetr|spectral unmixing|atmospheric correction|radiometric calibration|normalized difference vegetation index|\bndvi\b|ocean color remote|land surface temperature retriev/;
-  const geospatial = /satellite|spaceborne|airborne|aerial|\buav\b|drone|earth|land|vegetation|crop|forest|ocean|water|soil|urban|atmosphere|glacier|snow|ice|surface|spatial|geospatial|mapping|monitoring|classification|retrieval|detection|imagery|imaging/;
-  const sensor = /\bsentinel(?:-|\s)?\d|\blandsat\b|\bmodis\b|\bspot(?:-|\s)?\d|\bgaofen\b|worldview|rapideye|planet scope|terrasar|radarsat|alos|envisat|grace satellite/;
+  const strong = /remote sensing|earth observation|satellite remote|spaceborne remote|airborne remote|aerial remote|satellite imagery|satellite image|hyperspectral imag|multispectral imag|radar imagery|interferometric synthetic aperture radar|遥感|对地观测|卫星遥感|航空遥感|航天遥感|卫星影像|卫星图像|遥感影像|遥感图像/;
+  const technique = /\bhyperspectral\b|\bmultispectral\b|synthetic aperture radar|\binsar\b|\blidar\b|photogrammetr|spectral unmixing|atmospheric correction|radiometric calibration|normalized difference vegetation index|\bndvi\b|ocean color remote|land surface temperature retriev|高光谱|多光谱|合成孔径雷达|激光雷达|点云|摄影测量|光谱解混|大气校正|辐射定标|植被指数/;
+  const geospatial = /satellite|spaceborne|airborne|aerial|\buav\b|drone|earth|land|vegetation|crop|forest|ocean|water|soil|urban|atmosphere|glacier|snow|ice|surface|spatial|geospatial|mapping|monitoring|classification|retrieval|detection|imagery|imaging|卫星|航空|无人机|地表|土地|植被|作物|森林|海洋|水体|土壤|城市|大气|冰川|积雪|冰盖|空间|测绘|监测|分类|反演|检测/;
+  const sensor = /\bsentinel(?:-|\s)?\d|\blandsat\b|\bmodis\b|\bspot(?:-|\s)?\d|\bgaofen\b|worldview|rapideye|planet scope|terrasar|radarsat|alos|envisat|grace satellite|高分|资源卫星|环境卫星|风云|天绘|吉林一号/;
   return strong.test(text) || technique.test(text) || (sensor.test(text) && geospatial.test(text));
 }
 function isValidPaperDate(value) {
@@ -248,17 +279,30 @@ function openAlexToPaper(work, query) {
   const bestOa = work.best_oa_location || {};
   const source = primary.source || {};
   const publishedDate = work.publication_date || "";
-  const authors = (work.authorships || []).map((authorship) => ({
-    name: cleanText(authorship.author?.display_name),
-    orcid: authorship.author?.orcid || "",
-    institution: cleanText(authorship.institutions?.[0]?.display_name)
-  })).filter((author) => author.name);
+  const authors = (work.authorships || []).map((authorship) => {
+    const institutions = (authorship.institutions || []).map((institution) => ({
+      name: cleanText(institution.display_name),
+      country_code: cleanText(institution.country_code).toUpperCase()
+    })).filter((institution) => institution.name || institution.country_code);
+    const countryCodes = [...new Set([
+      cleanText(authorship.country_code).toUpperCase(),
+      ...(authorship.countries || []).map((code) => cleanText(code).toUpperCase()),
+      ...institutions.map((institution) => institution.country_code)
+    ].filter((code) => /^[A-Z]{2}$/.test(code)))];
+    return {
+      name: cleanText(authorship.author?.display_name),
+      orcid: authorship.author?.orcid || "",
+      institution: institutions.map((institution) => institution.name).filter(Boolean)[0] || "",
+      country_code: countryCodes[0] || "",
+      country_codes: countryCodes
+    };
+  }).filter((author) => author.name);
   const sourceKeywords = [
     ...(work.topics || []).map((topic) => cleanText(topic.display_name)),
     ...(work.keywords || []).map((keyword) => cleanText(keyword.display_name))
   ].filter(Boolean);
   const id = doi ? `doi:${doi}` : stableId("openalex", work.id || title);
-  return {
+  return normalizePaperMetadata({
     id,
     title: truncate(title, 500),
     abstract: truncate(reconstructAbstract(work.abstract_inverted_index), 7000),
@@ -279,39 +323,46 @@ function openAlexToPaper(work, query) {
     sources: ["OpenAlex"],
     query_hits: [query.label],
     indexed_at: NOW.toISOString()
-  };
+  });
 }
-
 async function fetchOpenAlex(existingCount) {
   const pageLimit = Number(process.env.ATLAS_OPENALEX_PAGES || (QUICK ? 1 : existingCount ? 1 : 2));
+  const domesticPageLimit = Number(process.env.ATLAS_DOMESTIC_PAGES || 1);
   const dateField = existingCount ? "from_created_date" : "from_publication_date";
   const fromDate = process.env.ATLAS_FROM_DATE || (existingCount ? dateDaysAgo(45) : dateDaysAgo(Number(process.env.ATLAS_INITIAL_DAYS || 3650)));
-  log(`OpenAlex: querying ${ACTIVE_QUERIES.length} topics since ${fromDate} (${pageLimit} page(s) per topic)`);
-  const records = await mapLimit(ACTIVE_QUERIES, Number(process.env.ATLAS_CONCURRENCY || 3), async (query) => {
-    const found = [];
-    let cursor = "*";
-    for (let page = 0; page < pageLimit && cursor; page += 1) {
-      const params = new URLSearchParams({
-        search: query.q,
-        filter: `${dateField}:${fromDate}`,
-        sort: "publication_date:desc",
-        "per-page": "200",
-        cursor,
-        select: "id,doi,title,display_name,authorships,publication_date,primary_location,best_oa_location,open_access,type,type_crossref,topics,keywords,cited_by_count,language,abstract_inverted_index",
-        mailto: MAILTO
-      });
-      const payload = await fetchJson(`https://api.openalex.org/works?${params}`, `OpenAlex ${query.key} page ${page + 1}`, { retries: QUICK ? 1 : 2 });
-      for (const work of payload.results || []) {
-        const paper = openAlexToPaper(work, query);
-        if (paper) found.push(paper);
-      }
-      cursor = payload.meta?.next_cursor || "";
-    }
-    return found;
-  });
-  return records;
-}
 
+  async function collect(querySet, currentPageLimit, extraFilter, label) {
+    if (!querySet.length || currentPageLimit < 1) return [];
+    log(`${label}: querying ${querySet.length} topics since ${fromDate} (${currentPageLimit} page(s) per topic)`);
+    return mapLimit(querySet, Number(process.env.ATLAS_CONCURRENCY || 3), async (query) => {
+      const found = [];
+      let cursor = "*";
+      for (let page = 0; page < currentPageLimit && cursor; page += 1) {
+        const filters = [`${dateField}:${fromDate}`, extraFilter].filter(Boolean);
+        const params = new URLSearchParams({
+          search: query.q,
+          filter: filters.join(","),
+          sort: "publication_date:desc",
+          "per-page": "200",
+          cursor,
+          select: "id,doi,title,display_name,authorships,publication_date,primary_location,best_oa_location,open_access,type,type_crossref,topics,keywords,cited_by_count,language,abstract_inverted_index",
+          mailto: MAILTO
+        });
+        const payload = await fetchJson(`https://api.openalex.org/works?${params}`, `OpenAlex ${query.key} page ${page + 1}`, { retries: QUICK ? 1 : 2 });
+        for (const work of payload.results || []) {
+          const paper = openAlexToPaper(work, query);
+          if (paper) found.push(paper);
+        }
+        cursor = payload.meta?.next_cursor || "";
+      }
+      return found;
+    });
+  }
+
+  const domestic = await collect(ACTIVE_DOMESTIC_QUERIES, domesticPageLimit, "institutions.country_code:cn", "OpenAlex 国内机构");
+  const general = await collect(ACTIVE_QUERIES, pageLimit, "", "OpenAlex");
+  return [...general, ...domestic];
+}
 function crossrefDate(item) {
   const candidate = item["published-online"] || item.published || item["published-print"] || item.issued || item.created;
   const parts = candidate?.["date-parts"]?.[0];
@@ -328,13 +379,14 @@ function crossrefToPaper(item, query) {
   const authors = (item.author || []).map((author) => ({
     name: cleanText([author.given, author.family].filter(Boolean).join(" ") || author.name),
     orcid: author.ORCID || "",
-    institution: cleanText(author.affiliation?.[0]?.name)
+    institution: cleanText(author.affiliation?.[0]?.name),
+    country_code: ""
   })).filter((author) => author.name);
   const license = Array.isArray(item.license) ? item.license[0] : null;
   const links = Array.isArray(item.link) ? item.link : [];
   const pdfUrl = links.find((link) => /pdf/i.test(link["content-type"] || "") || /pdf/i.test(link.URL || ""))?.URL || "";
   const id = doi ? `doi:${doi}` : stableId("crossref", title + publishedDate);
-  return {
+  return normalizePaperMetadata({
     id,
     title: truncate(title, 500),
     abstract: truncate(item.abstract, 7000),
@@ -355,26 +407,31 @@ function crossrefToPaper(item, query) {
     sources: ["Crossref"],
     query_hits: [query.label],
     indexed_at: NOW.toISOString()
-  };
+  });
 }
-
 async function fetchCrossref(existingCount) {
   const pageLimit = Number(process.env.ATLAS_CROSSREF_PAGES || (QUICK ? 1 : existingCount ? 1 : 5));
+  const journalPageLimit = Number(process.env.ATLAS_JOURNAL_PAGES || (QUICK ? 1 : existingCount ? 1 : 10));
   const dateField = existingCount ? "from-index-date" : "from-pub-date";
   const fromDate = process.env.ATLAS_FROM_DATE || (existingCount ? dateDaysAgo(60) : dateDaysAgo(Number(process.env.ATLAS_INITIAL_DAYS || 3650)));
-  log(`Crossref: querying ${ACTIVE_QUERIES.length} topics since ${fromDate} (${pageLimit} page(s) per topic)`);
-  return mapLimit(ACTIVE_QUERIES, Number(process.env.ATLAS_CONCURRENCY || 3), async (query) => {
+  log(`Crossref: querying ${CROSSREF_QUERIES.length} topics/journals since ${fromDate}`);
+  return mapLimit(CROSSREF_QUERIES, Number(process.env.ATLAS_CONCURRENCY || 3), async (query) => {
     const found = [];
+    const currentPageLimit = query.issn ? journalPageLimit : query.chinese ? Number(process.env.ATLAS_CHINESE_PAGES || 1) : pageLimit;
     let cursor = "*";
-    for (let page = 0; page < pageLimit && cursor; page += 1) {
+    for (let page = 0; page < currentPageLimit && cursor; page += 1) {
       const params = new URLSearchParams({
-        "query.bibliographic": query.q,
-        filter: `${dateField}:${fromDate},type:journal-article`,
         rows: "100",
         cursor,
-        select: "DOI,title,author,abstract,URL,published,published-online,published-print,issued,created,container-title,short-container-title,type,subject,is-referenced-by-count,link,license,publisher",
+        select: "DOI,title,original-title,author,abstract,URL,published,published-online,published-print,issued,created,container-title,short-container-title,type,subject,is-referenced-by-count,link,license,publisher",
         mailto: MAILTO
       });
+      if (query.issn) {
+        params.set("filter", `${dateField}:${fromDate},type:journal-article,issn:${query.issn}`);
+      } else {
+        params.set("query.bibliographic", query.q);
+        params.set("filter", `${dateField}:${fromDate},type:journal-article`);
+      }
       const payload = await fetchJson(`https://api.crossref.org/works?${params}`, `Crossref ${query.key} page ${page + 1}`, { retries: QUICK ? 1 : 2 });
       for (const item of payload.message?.items || []) {
         const paper = crossrefToPaper(item, query);
@@ -384,7 +441,8 @@ async function fetchCrossref(existingCount) {
     }
     return found;
   });
-}function xmlValue(xml, tag) {
+}
+function xmlValue(xml, tag) {
   const match = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"));
   return match ? cleanText(match[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")) : "";
 }
@@ -494,11 +552,24 @@ function mergeAuthorArrays(...arrays) {
     if (!name) continue;
     const key = name.toLocaleLowerCase();
     const previous = map.get(key) || {};
-    map.set(key, { ...previous, ...author, name, orcid: author?.orcid || previous.orcid || "", institution: author?.institution || previous.institution || "" });
+    const countryCodes = [...new Set([
+      ...(previous.country_codes || []),
+      previous.country_code,
+      author?.country_code,
+      ...(author?.country_codes || [])
+    ].map((code) => cleanText(code).toUpperCase()).filter((code) => /^[A-Z]{2}$/.test(code)))];
+    map.set(key, {
+      ...previous,
+      ...author,
+      name,
+      orcid: author?.orcid || previous.orcid || "",
+      institution: author?.institution || previous.institution || "",
+      country_code: countryCodes[0] || "",
+      country_codes: countryCodes
+    });
   }
   return [...map.values()];
 }
-
 function preferText(primary, secondary) {
   const first = cleanText(primary);
   const second = cleanText(secondary);
@@ -507,18 +578,14 @@ function preferText(primary, secondary) {
 
 function mergePaper(base, incoming) {
   const mergedSources = mergeStringArrays(base.sources || [base.source], incoming.sources || [incoming.source]);
-  const mergedTopics = classifyTopics({
+  const mergedAuthors = mergeAuthorArrays(base.authors || [], incoming.authors || []);
+  const mergedKeywords = mergeStringArrays(base.keywords || [], incoming.keywords || []);
+  const mergedQueryHits = mergeStringArrays(base.query_hits || [], incoming.query_hits || []);
+  const merged = {
     ...base,
     title: preferText(base.title, incoming.title),
     abstract: preferText(base.abstract, incoming.abstract),
-    keywords: mergeStringArrays(base.keywords || [], incoming.keywords || []),
-    query_hits: mergeStringArrays(base.query_hits || [], incoming.query_hits || [])
-  });
-  return {
-    ...base,
-    title: preferText(base.title, incoming.title),
-    abstract: preferText(base.abstract, incoming.abstract),
-    authors: mergeAuthorArrays(base.authors || [], incoming.authors || []),
+    authors: mergedAuthors,
     published_date: base.published_date || incoming.published_date,
     year: base.year || incoming.year,
     venue: preferText(base.venue, incoming.venue),
@@ -530,27 +597,37 @@ function mergePaper(base, incoming) {
     open_access: Boolean(base.open_access || incoming.open_access),
     cited_by_count: Math.max(Number(base.cited_by_count || 0), Number(incoming.cited_by_count || 0)),
     language: base.language || incoming.language,
-    keywords: mergeStringArrays(base.keywords || [], incoming.keywords || []).slice(0, 30),
+    keywords: mergedKeywords,
     source: mergedSources.join(" + "),
     sources: mergedSources,
-    topics: mergedTopics,
-    query_hits: mergeStringArrays(base.query_hits || [], incoming.query_hits || []),
-    indexed_at: incoming.indexed_at || base.indexed_at || NOW.toISOString()
+    import_source: mergeImportSource(base.import_source, incoming.import_source).join(" + "),
+    query_hits: mergedQueryHits,
+    is_domestic: Boolean(base.is_domestic || incoming.is_domestic),
+    domestic_evidence: base.is_domestic || incoming.is_domestic ? "affiliation" : "unknown",
+    indexed_at: incoming.indexed_at || base.indexed_at || NOW.toISOString(),
+    validated: Boolean(base.validated || incoming.validated)
   };
+  merged.topics = classifyTopics(merged);
+  return normalizePaperMetadata(merged);
 }
-
 function deduplicate(papers) {
   const map = new Map();
   for (const raw of papers) {
-    const paper = { ...raw, topics: classifyTopics(raw), sources: mergeStringArrays(raw.sources || [raw.source]) };
+    const normalized = normalizePaperMetadata(raw);
+    const paper = {
+      ...normalized,
+      topics: classifyTopics(normalized),
+      sources: mergeStringArrays(normalized.sources || [normalized.source])
+    };
     if (paper.sources.length === 1 && paper.sources[0] === "Crossref" && !paper.pdf_url) paper.open_access = false;
-    if (!paper.title || paper.title.length < 8 || !isValidPaperDate(paper.published_date) || !isRelevantPaper(paper)) continue;
+    if (!paper.title || paper.title.length < 8 || !isValidPaperDate(paper.published_date) || (!paper.validated && !isRelevantPaper(paper))) continue;
     const key = paperKey(paper);
     if (map.has(key)) map.set(key, mergePaper(map.get(key), paper));
     else map.set(key, paper);
   }
   return [...map.values()].sort((a, b) => String(b.published_date || "").localeCompare(String(a.published_date || "")));
-}function countBy(papers, selector) {
+}
+function countBy(papers, selector) {
   const counts = new Map();
   for (const paper of papers) {
     const values = selector(paper);
@@ -564,11 +641,15 @@ function deduplicate(papers) {
 
 function buildSummary(papers, sourceStatus) {
   const topicCounts = countBy(papers, (paper) => paper.topics || []);
+  const sourceCounts = countBy(papers, (paper) => paper.sources || [paper.source]);
+  const domesticPapers = papers.filter((paper) => paper.is_domestic);
   const allSources = [...new Set(papers.flatMap((paper) => paper.sources || [paper.source]))].sort();
   return {
     generated_at: NOW.toISOString(),
     total: papers.length,
     open_access: papers.filter((paper) => paper.open_access).length,
+    domestic_count: domesticPapers.length,
+    chinese_count: papers.filter((paper) => paper.language === "zh").length,
     recent_7_days: papers.filter((paper) => {
       if (!paper.published_date) return false;
       const age = NOW.getTime() - new Date(`${paper.published_date}T00:00:00Z`).getTime();
@@ -579,6 +660,8 @@ function buildSummary(papers, sourceStatus) {
       latest: papers.map((paper) => paper.published_date).filter(Boolean).sort().at(-1) || null
     },
     sources: allSources,
+    source_counts: sourceCounts,
+    domestic_source_counts: countBy(domesticPapers, (paper) => paper.sources || [paper.source]),
     source_status: sourceStatus,
     topics: Object.keys(topicCounts),
     topic_counts: topicCounts,
@@ -587,7 +670,6 @@ function buildSummary(papers, sourceStatus) {
     update_schedule: "每天 03:17 UTC（约北京时间 11:17）"
   };
 }
-
 function xmlEscape(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -600,7 +682,8 @@ function xmlEscape(value = "") {
 function buildRss(papers) {
   const items = papers.slice(0, 100).map((paper) => {
     const link = paper.url || (paper.doi ? `https://doi.org/${paper.doi}` : SITE_URL);
-    const description = paper.abstract || `${paper.venue || "遥感论文"} ${paper.doi ? `DOI: ${paper.doi}` : ""}`;
+    const markers = `${paper.is_domestic ? "[国内] " : ""}${paper.language === "zh" ? "[中文] " : ""}`;
+    const description = `${markers}${paper.abstract || `${paper.venue || "遥感论文"} ${paper.doi ? `DOI: ${paper.doi}` : ""}`}`;
     return `    <item>\n      <title>${xmlEscape(paper.title)}</title>\n      <link>${xmlEscape(link)}</link>\n      <guid isPermaLink="false">${xmlEscape(paper.id)}</guid>\n      <pubDate>${new Date(`${paper.published_date || TODAY}T00:00:00Z`).toUTCString()}</pubDate>\n      <description>${xmlEscape(description)}</description>\n      <category>${xmlEscape((paper.topics || []).join(", "))}</category>\n    </item>`;
   }).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n  <channel>\n    <title>遥感论文雷达</title>\n    <link>${xmlEscape(SITE_URL)}</link>\n    <description>持续更新的遥感论文聚合索引</description>\n    <language>zh-cn</language>\n    <lastBuildDate>${NOW.toUTCString()}</lastBuildDate>\n${items}\n  </channel>\n</rss>\n`;
@@ -615,8 +698,14 @@ function compactPaperForOutput(paper) {
   return {
     ...compact,
     abstract: truncate(paper.abstract, 2200),
-    authors: (paper.authors || []).slice(0, 60).map((author) => ({ name: cleanText(author.name || author) })).filter((author) => author.name),
-    keywords: (paper.keywords || []).map((keyword) => truncate(keyword, 100)).filter(Boolean).slice(0, 8)
+    authors: (paper.authors || []).slice(0, 60).map((author) => {
+      const compactAuthor = { name: cleanText(author.name || author) };
+      const countryCode = cleanText(author.country_code).toUpperCase();
+      if (/^[A-Z]{2}$/.test(countryCode)) compactAuthor.country_code = countryCode;
+      return compactAuthor;
+    }).filter((author) => author.name),
+    keywords: (paper.keywords || []).map((keyword) => truncate(keyword, 100)).filter(Boolean).slice(0, 8),
+    validated: true
   };
 }
 async function writeOutputs(papers, sourceStatus) {
@@ -625,7 +714,7 @@ async function writeOutputs(papers, sourceStatus) {
   const summary = buildSummary(outputPapers, sourceStatus);
   const payload = {
     generated_at: NOW.toISOString(),
-    schema_version: 1,
+    schema_version: 2,
     title: "遥感论文雷达",
     description: "多源开放学术记录聚合的遥感论文索引",
     ...summary,
@@ -653,6 +742,16 @@ async function main() {
   const sourceStatus = {};
   const collected = [];
 
+  try {
+    const manual = await loadManualImports(IMPORTS_DIR, { now: NOW, onError: (message) => log(`WARN 导入文件 ${message}`) });
+    collected.push(...manual.papers);
+    sourceStatus.ManualImports = { status: "ok", files: manual.files, fetched: manual.papers.length, errors: manual.errors.length };
+    log(`ManualImports: loaded ${manual.papers.length.toLocaleString()} records from ${manual.files} file(s)`);
+  } catch (error) {
+    sourceStatus.ManualImports = { status: "error", files: 0, fetched: 0, message: error.message };
+    log(`ERROR ManualImports: ${error.message}`);
+  }
+
   const collectors = [];
   if (ENABLED_SOURCES.has("OpenAlex")) collectors.push(["OpenAlex", fetchOpenAlex(queryExistingCount)]);
   if (ENABLED_SOURCES.has("Crossref")) collectors.push(["Crossref", fetchCrossref(queryExistingCount)]);
@@ -676,7 +775,8 @@ async function main() {
     log("No new records were collected; existing index will be preserved.");
   }
 
-  const deduped = deduplicate([...existing, ...collected]).slice(0, MAX_PAPERS);
+  const existingForMerge = existing.map((paper) => ({ ...paper, validated: true }));
+  const deduped = deduplicate([...existingForMerge, ...collected]).slice(0, MAX_PAPERS);
   const summary = await writeOutputs(deduped, sourceStatus);
   log(`Wrote ${deduped.length.toLocaleString()} unique papers to ${path.relative(ROOT, OUTPUT_FILE)}`);
   log(`Topics: ${summary.topics.join(", ")}`);

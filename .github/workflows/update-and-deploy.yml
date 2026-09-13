@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npm test
+
       - name: Refresh paper index
         run: npm run update
         env:
@@ -45,6 +48,11 @@ jobs:
           ATLAS_BOOTSTRAP_THRESHOLD: "5000"
           ATLAS_OPENALEX_PAGES: "2"
           ATLAS_CROSSREF_PAGES: "5"
+          ATLAS_CHINESE_PAGES: "1"
+          ATLAS_CHINESE_QUERY_LIMIT: "9"
+          ATLAS_JOURNAL_PAGES: "10"
+          ATLAS_DOMESTIC_QUERIES: "6"
+          ATLAS_DOMESTIC_PAGES: "1"
           ATLAS_ARXIV_QUERIES: "3"
 
       - name: Build website

@@ -16,6 +16,8 @@ const state = {
   topic: "全部",
   source: "全部",
   openAccessOnly: false,
+  domesticOnly: false,
+  chineseOnly: false,
   favoritesOnly: false,
   sort: "latest",
   page: 1,
@@ -64,15 +66,15 @@ function escapeRegex(value = "") {
 
 function highlight(value = "") {
   const safe = escapeHtml(value);
-  const query = state.query.trim();
-  if (!query) return safe;
+  const tokens = state.query.trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return safe;
   try {
-    return safe.replace(new RegExp(`(${escapeRegex(escapeHtml(query))})`, "gi"), "<mark>$1</mark>");
+    const pattern = tokens.map((token) => escapeRegex(escapeHtml(token))).join("|");
+    return safe.replace(new RegExp(`(${pattern})`, "gi"), "<mark>$1</mark>");
   } catch {
     return safe;
   }
 }
-
 function formatNumber(value) {
   return new Intl.NumberFormat("zh-CN", { notation: value >= 10000 ? "compact" : "standard", maximumFractionDigits: 1 }).format(value || 0);
 }
@@ -126,7 +128,7 @@ function renderShell() {
         <div class="hero-copy">
           <div class="eyebrow"><span></span>持续扫描全球遥感研究</div>
           <h1>让每一篇遥感论文<br /><em>都能被看见。</em></h1>
-          <p>聚合 OpenAlex、Crossref 与 arXiv 的开放学术记录，自动清洗、去重并标注研究主题。每天增量更新，按关键词、年份、来源和开放获取状态快速检索。</p>
+          <p>聚合 OpenAlex、Crossref、arXiv 以及 CNKI/万方人工导入题录，自动清洗、去重、识别国内研究并标注中文主题。每天增量更新，按关键词、年份、来源、国内研究和语言快速检索。</p>
           <div class="hero-actions">
             <a class="primary-button" href="#papers">开始检索 ${icons.arrow}</a>
             <a class="text-button" href="#method">了解收录范围</a>
@@ -151,6 +153,7 @@ function renderShell() {
         <article><span class="stat-icon">${icons.book}</span><div><strong id="statPapers">—</strong><span>已索引论文</span></div></article>
         <article><span class="stat-icon">${icons.spark}</span><div><strong id="statRecent">—</strong><span>近 7 天发表</span></div></article>
         <article><span class="stat-icon">${icons.radar}</span><div><strong id="statOpen">—</strong><span>开放获取</span></div></article>
+        <article><span class="stat-icon">${icons.check}</span><div><strong id="statDomestic">—</strong><span>国内研究</span></div></article>
         <article><span class="stat-icon">${icons.calendar}</span><div><strong id="statUpdated">—</strong><span>最近更新</span></div></article>
       </section>
 
@@ -175,6 +178,8 @@ function renderShell() {
             <label class="select-field"><span>排序方式</span><select id="sortFilter"><option value="latest">最新发表</option><option value="cited">引用最多</option><option value="relevance">相关度优先</option><option value="title">标题排序</option></select></label>
             <div class="toggle-fields">
               <label class="check-field"><input id="oaFilter" type="checkbox" /><span>${icons.check}</span>仅开放获取</label>
+              <label class="check-field"><input id="domesticFilter" type="checkbox" /><span>${icons.check}</span>仅国内研究</label>
+              <label class="check-field"><input id="chineseFilter" type="checkbox" /><span>${icons.check}</span>仅中文论文</label>
               <label class="check-field"><input id="favoriteFilter" type="checkbox" /><span>${icons.check}</span>仅我的收藏</label>
             </div>
           </div>
@@ -196,10 +201,10 @@ function renderShell() {
       <section class="method" id="method">
         <div class="method-intro">
           <span class="section-kicker">OPEN & TRACEABLE</span><h2>数据如何更新？</h2>
-          <p>站点采用静态数据架构。更新任务每天从开放学术 API 拉取新增记录，按 DOI 或“标准化标题 + 年份”去重，统一作者、摘要、开放获取与引用信息，并生成网站数据、RSS 和检索接口。</p>
+          <p>站点采用静态数据架构。更新任务每天从开放学术 API 拉取新增记录，并合并 imports 目录中的 CNKI、万方和 EndNote 导出题录；按 DOI 或“标准化标题 + 年份”去重，统一作者、摘要、国内机构与引用信息。</p>
         </div>
         <div class="method-grid">
-          <article><span>01</span><h3>多源采集</h3><p>OpenAlex 提供全球学术图谱，Crossref 补充出版元数据，arXiv 覆盖最新预印本。</p></article>
+          <article><span>01</span><h3>多源采集</h3><p>OpenAlex 提供全球与中国机构图谱，Crossref 补充国内期刊题录，arXiv 覆盖预印本，CNKI/万方文件按需导入。</p></article>
           <article><span>02</span><h3>清洗去重</h3><p>剔除无效题录，规范 DOI 与日期，合并重复记录，恢复可公开获取的摘要。</p></article>
           <article><span>03</span><h3>每日发布</h3><p>GitHub Actions 每天自动运行，更新论文 JSON、RSS 与网页，并发布到 GitHub Pages。</p></article>
         </div>
@@ -256,6 +261,7 @@ function renderStats() {
   document.querySelector("#statPapers").textContent = formatNumber(total);
   document.querySelector("#statRecent").textContent = formatNumber(recent);
   document.querySelector("#statOpen").textContent = `${open}%`;
+  document.querySelector("#statDomestic").textContent = formatNumber(state.data.domestic_count ?? state.papers.filter((paper) => paper.is_domestic).length);
   document.querySelector("#statUpdated").textContent = generatedAt;
 }
 
@@ -279,37 +285,44 @@ function renderActiveFilters() {
   if (state.topic !== "全部") filters.push(state.topic);
   if (state.source !== "全部") filters.push(state.source);
   if (state.openAccessOnly) filters.push("开放获取");
+  if (state.domesticOnly) filters.push("国内研究");
+  if (state.chineseOnly) filters.push("中文论文");
   if (state.favoritesOnly) filters.push("我的收藏");
   document.querySelector("#activeFilterText").textContent = filters.length ? `当前：${filters.join(" · ")}` : "未启用筛选条件";
 }
 
 function relevanceScore(paper) {
   const query = state.query.trim().toLocaleLowerCase();
-  if (!query) return 0;
+  const tokens = query.split(/\s+/).filter(Boolean);
+  if (!tokens.length) return 0;
   const title = String(paper.title || "").toLocaleLowerCase();
   const authors = (paper.authors || []).map((author) => author.name || author).join(" ").toLocaleLowerCase();
   const topics = (paper.topics || []).join(" ").toLocaleLowerCase();
   const abstract = String(paper.abstract || "").toLocaleLowerCase();
-  let score = 0;
-  if (title === query) score += 100;
-  if (title.includes(query)) score += 40;
-  if (topics.includes(query)) score += 20;
-  if (authors.includes(query)) score += 12;
-  if (abstract.includes(query)) score += 5;
-  return score;
+  return tokens.reduce((score, token) => {
+    let next = score;
+    if (title === token) next += 100;
+    if (title.includes(token)) next += 40;
+    if (topics.includes(token)) next += 20;
+    if (authors.includes(token)) next += 12;
+    if (abstract.includes(token)) next += 5;
+    return next;
+  }, 0);
 }
-
 function applyFilters() {
   const query = state.query.trim().toLocaleLowerCase();
+  const queryTokens = query.split(/\s+/).filter(Boolean);
   state.filtered = state.papers.filter((paper) => {
     if (state.year !== "全部" && String(paper.year) !== state.year) return false;
     if (state.topic !== "全部" && !(paper.topics || []).includes(state.topic)) return false;
     if (state.source !== "全部" && !(paper.sources || [paper.source]).includes(state.source)) return false;
     if (state.openAccessOnly && !paper.open_access) return false;
+    if (state.domesticOnly && !paper.is_domestic) return false;
+    if (state.chineseOnly && paper.language !== "zh") return false;
     if (state.favoritesOnly && !state.favorites.has(paper.id)) return false;
-    if (query) {
+    if (queryTokens.length) {
       const haystack = [paper.title, paper.abstract, paper.venue, paper.publisher, ...(paper.keywords || []), ...(paper.topics || []), ...(paper.authors || []).map((author) => author.name || author)].filter(Boolean).join(" ").toLocaleLowerCase();
-      if (!haystack.includes(query)) return false;
+      if (!queryTokens.every((token) => haystack.includes(token))) return false;
     }
     return true;
   });
@@ -323,7 +336,6 @@ function applyFilters() {
   renderResults();
   renderActiveFilters();
 }
-
 function truncateAuthors(authors = []) {
   const names = authors.map((author) => author.name || author).filter(Boolean);
   if (!names.length) return "作者信息暂缺";
@@ -342,7 +354,7 @@ function paperCard(paper, index) {
   return `
     <article class="paper-card ${daysAgo(paper.published_date) ? "is-new" : ""}" style="--delay:${Math.min(index, 10) * 35}ms">
       <div class="paper-topline">
-        <div class="badges">${daysAgo(paper.published_date) ? '<span class="badge new">NEW</span>' : ""}${paper.open_access ? '<span class="badge oa">OPEN</span>' : ""}<span class="badge source">${escapeHtml((paper.sources || [paper.source]).slice(0, 2).join(" + "))}</span></div>
+        <div class="badges">${daysAgo(paper.published_date) ? '<span class="badge new">NEW</span>' : ""}${paper.is_domestic ? '<span class="badge cn">CN</span>' : ""}${paper.language === "zh" ? '<span class="badge zh">中文</span>' : ""}${paper.open_access ? '<span class="badge oa">OPEN</span>' : ""}<span class="badge source">${escapeHtml((paper.sources || [paper.source]).slice(0, 2).join(" + "))}</span></div>
         <button class="favorite-button ${isFavorite ? "active" : ""}" type="button" data-action="favorite" data-id="${escapeHtml(paper.id)}" aria-label="${isFavorite ? "取消收藏" : "收藏论文"}">${icons.bookmark}</button>
       </div>
       <h3>${highlight(paper.title || "未命名论文")}</h3>
@@ -414,6 +426,8 @@ function resetAll() {
   state.topic = "全部";
   state.source = "全部";
   state.openAccessOnly = false;
+  state.domesticOnly = false;
+  state.chineseOnly = false;
   state.favoritesOnly = false;
   state.sort = "latest";
   document.querySelector("#searchInput").value = "";
@@ -421,6 +435,8 @@ function resetAll() {
   document.querySelector("#sourceFilter").value = "全部";
   document.querySelector("#sortFilter").value = "latest";
   document.querySelector("#oaFilter").checked = false;
+  document.querySelector("#domesticFilter").checked = false;
+  document.querySelector("#chineseFilter").checked = false;
   document.querySelector("#favoriteFilter").checked = false;
   document.querySelectorAll("[data-filter-type=topic]").forEach((button) => button.classList.toggle("active", button.dataset.value === "全部"));
   applyFilters();
@@ -464,6 +480,8 @@ function bindEvents() {
   document.querySelector("#sourceFilter").addEventListener("change", (event) => { state.source = event.target.value; applyFilters(); });
   document.querySelector("#sortFilter").addEventListener("change", (event) => { state.sort = event.target.value; applyFilters(); });
   document.querySelector("#oaFilter").addEventListener("change", (event) => { state.openAccessOnly = event.target.checked; applyFilters(); });
+  document.querySelector("#domesticFilter").addEventListener("change", (event) => { state.domesticOnly = event.target.checked; applyFilters(); });
+  document.querySelector("#chineseFilter").addEventListener("change", (event) => { state.chineseOnly = event.target.checked; applyFilters(); });
   document.querySelector("#favoriteFilter").addEventListener("change", (event) => { state.favoritesOnly = event.target.checked; applyFilters(); });
   document.querySelector("#resetFilters").addEventListener("click", resetAll);
   document.querySelector("#emptyReset").addEventListener("click", resetAll);

@@ -9,7 +9,14 @@
     "build": "vite build",
     "preview": "vite preview",
     "update": "node scripts/update-papers.mjs",
-    "update:quick": "node scripts/update-papers.mjs --quick"
+    "update:quick": "node scripts/update-papers.mjs --quick",
+    "test": "node --test scripts/*.test.mjs"
+  },
+  "dependencies": {
+    "@citation-js/core": "^0.7.21",
+    "@citation-js/plugin-bibtex": "^0.7.21",
+    "@citation-js/plugin-enw": "^0.3.0",
+    "@citation-js/plugin-ris": "^0.7.21"
   },
   "devDependencies": {
     "vite": "^7.1.7"

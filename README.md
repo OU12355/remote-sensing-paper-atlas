@@ -1,14 +1,15 @@
 # 遥感论文雷达
 
-一个可持续更新、可公开部署的遥感论文聚合网站。站点从 OpenAlex、Crossref 和 arXiv 抓取开放学术元数据，自动清洗、去重、分类，并提供全文入口、关键词检索、年份/来源/主题筛选、收藏和 BibTeX 导出。
+一个可持续更新、可公开部署的遥感论文聚合网站。站点从 OpenAlex、Crossref 和 arXiv 抓取开放学术元数据，并支持合并 CNKI、万方和其他合法来源的 RIS/BibTeX/EndNote 导出题录；自动清洗、去重、分类，并提供国内研究、中文论文、来源和主题筛选。
 
 ## 当前能力
 
-- 多源采集：OpenAlex 学术图谱、Crossref 出版记录、arXiv 预印本。
+- 多源采集：OpenAlex 学术图谱、Crossref 出版记录、arXiv 预印本，以及 CNKI/万方人工导入。
 - 自动去重：按“标准化标题 + 年份”合并预印本、期刊版和重复记录。
 - 相关性过滤：剔除仅概念相近、但不属于遥感研究的记录。
 - 自动分类：SAR/InSAR、高光谱、LiDAR/点云、大气、海洋、农业、灾害、基础模型等主题。
-- 前端功能：全文关键词检索、年份/来源/开放获取筛选、收藏、排序、BibTeX 和 DOI 复制。
+- 国内覆盖：按作者机构 `CN` 标记中国大陆研究，支持中文查询与国内期刊 ISSN 补录。
+- 前端功能：中英文组合检索、国内/中文/年份/来源/开放获取筛选、收藏、排序、BibTeX 和 DOI 复制。
 - 发布产物：网页、论文 JSON、统计摘要、RSS、robots.txt 和 sitemap.xml。
 - 定时更新：GitHub Actions 每天 03:17 UTC 自动抓取、构建和部署。
 
@@ -51,9 +52,9 @@ npm run update
 `scripts/update-papers.mjs` 负责完整数据管线。每天运行时：
 
 1. 从已有 `public/data/papers.json` 读取历史索引。
-2. 分别请求 OpenAlex、Crossref 和 arXiv。
+2. 合并 `imports/` 中的 RIS、BibTeX、EndNote 题录，并请求 OpenAlex、Crossref 和 arXiv。
 3. 恢复 OpenAlex 摘要、规范 DOI/日期、清理 JATS HTML。
-4. 执行相关性判定和标题/年份去重。
+4. 识别作者机构国别、恢复中文语言信息，并执行相关性判定和标题/年份去重。
 5. 生成完整 JSON、摘要、RSS、robots 与 sitemap。
 6. 构建 Vite 静态站点并发布到 GitHub Pages。
 7. 将更新数据提交回仓库，供下一次增量抓取使用。
@@ -71,6 +72,10 @@ npm run update
 | `ATLAS_FROM_DATE` | 按任务自动计算 | 指定抓取起始日期，如 `2016-01-01` |
 | `ATLAS_OPENALEX_PAGES` | 初次 2 页，增量 1 页 | OpenAlex 每个主题抓取页数 |
 | `ATLAS_CROSSREF_PAGES` | 初次 5 页，增量 1 页 | Crossref 每个主题抓取页数 |
+| `ATLAS_CHINESE_QUERY_LIMIT` | `9` | 中文 Crossref 查询主题数 |
+| `ATLAS_JOURNAL_PAGES` | 初次 10 页，增量 1 页 | 国内期刊 ISSN 补录页数 |
+| `ATLAS_DOMESTIC_QUERIES` | `6` | OpenAlex 中国机构定向查询数 |
+| `ATLAS_DOMESTIC_PAGES` | `1` | 每个国内机构查询的页数 |
 | `ATLAS_ARXIV_QUERIES` | 初次 14，快速 3 | arXiv 查询主题数 |
 | `ATLAS_MAX_PAPERS` | `100000` | 索引上限 |
 | `ATLAS_BOOTSTRAP_THRESHOLD` | `5000` | 低于该数量时继续基础库回填 |
@@ -91,6 +96,7 @@ npm run update
 │   ├── data/papers.json                     # 网站使用的完整论文索引
 │   ├── data/summary.json                    # 公开统计摘要
 │   └── feed.xml                             # RSS
+├── imports/                                 # CNKI/万方 RIS、BibTeX、EndNote 导入目录
 ├── scripts/update-papers.mjs                # 抓取、清洗、去重与生成脚本
 ├── src/                                     # 网站前端
 └── vite.config.js
@@ -98,14 +104,14 @@ npm run update
 
 ## 收录边界
 
-“所有遥感论文”无法由任何单一公开 API 完整覆盖。Scopus、Web of Science、IEEE Xplore、Elsevier ScienceDirect、CNKI 和万方等平台通常要求机构订阅或专用 API 密钥。当前站点聚合的是开放学术生态中可合法批量获取的记录，并会持续扩充。
+“所有遥感论文”无法由任何单一公开 API 完整覆盖。Scopus、Web of Science、IEEE Xplore、Elsevier ScienceDirect、CNKI 和万方等平台通常要求机构订阅或专用 API 密钥。当前站点聚合开放来源，并通过 `imports/` 合并用户有权使用的题录导出；不会抓取 CNKI/万方网页或绕过登录、验证码和反爬机制。
 
 后续可按机构权限增加以下适配器：
 
 - IEEE Xplore Metadata API：需要机构 API key。
 - Elsevier Scopus API：需要机构 API key。
 - Web of Science Starter/Expanded API：需要 Clarivate key。
-- CNKI / 万方：通常需要授权数据导出或机构服务。
+- CNKI / 万方：已支持合规题录导入；全自动同步仍需要授权数据导出或机构 API。
 - Semantic Scholar / CORE / BASE：可进一步补充开放获取全文与预印本覆盖。
 
 ## 数据与版权
