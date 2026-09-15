@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-14T03:28:46.698Z",
-  "total": 4907,
-  "open_access": 3899,
-  "domestic_count": 737,
+  "generated_at": "2026-09-15T03:29:12.937Z",
+  "total": 5013,
+  "open_access": 3998,
+  "domestic_count": 758,
   "chinese_count": 16,
-  "recent_7_days": 538,
+  "recent_7_days": 476,
   "date_range": {
     "earliest": "2016-09-15",
     "latest": "2027-07-15"
@@ -14,11 +14,11 @@
     "OpenAlex"
   ],
   "source_counts": {
-    "OpenAlex": 2555,
-    "Crossref": 2352
+    "OpenAlex": 2658,
+    "Crossref": 2355
   },
   "domestic_source_counts": {
-    "OpenAlex": 737
+    "OpenAlex": 758
   },
   "source_status": {
     "ManualImports": {
@@ -29,7 +29,7 @@
     },
     "OpenAlex": {
       "status": "ok",
-      "fetched": 10783
+      "fetched": 11583
     },
     "Crossref": {
       "status": "ok",
@@ -43,68 +43,68 @@
   "topics": [
     "植被与农业",
     "遥感基础",
-    "LiDAR / 点云",
     "SAR / InSAR",
+    "LiDAR / 点云",
     "土壤与地质",
     "土地与城市",
     "基础模型与 AI",
     "高光谱",
     "灾害与应急",
     "定标与反演",
+    "目标检测与分割",
     "无人机遥感",
     "大气遥感",
     "冰冻圈",
-    "目标检测与分割",
     "变化检测",
     "海洋与水体",
     "热红外",
     "影像融合与重建"
   ],
   "topic_counts": {
-    "植被与农业": 1547,
-    "遥感基础": 1356,
-    "LiDAR / 点云": 861,
-    "SAR / InSAR": 838,
-    "土壤与地质": 780,
-    "土地与城市": 755,
-    "基础模型与 AI": 700,
-    "高光谱": 610,
-    "灾害与应急": 575,
-    "定标与反演": 345,
-    "无人机遥感": 320,
-    "大气遥感": 317,
-    "冰冻圈": 308,
-    "目标检测与分割": 271,
-    "变化检测": 248,
+    "植被与农业": 1604,
+    "遥感基础": 1357,
+    "SAR / InSAR": 927,
+    "LiDAR / 点云": 876,
+    "土壤与地质": 805,
+    "土地与城市": 779,
+    "基础模型与 AI": 731,
+    "高光谱": 620,
+    "灾害与应急": 598,
+    "定标与反演": 355,
+    "目标检测与分割": 343,
+    "无人机遥感": 322,
+    "大气遥感": 309,
+    "冰冻圈": 305,
+    "变化检测": 253,
     "海洋与水体": 219,
-    "热红外": 210,
-    "影像融合与重建": 162
+    "热红外": 207,
+    "影像融合与重建": 165
   },
   "type_counts": {
-    "journal-article": 2352,
-    "article": 1833,
-    "preprint": 349,
-    "dataset": 108,
-    "book-chapter": 43,
-    "peer-review": 38,
-    "conference-paper": 32,
+    "journal-article": 2355,
+    "article": 1894,
+    "preprint": 375,
+    "dataset": 114,
+    "book-chapter": 44,
+    "peer-review": 41,
+    "conference-paper": 36,
     "review": 26,
+    "dissertation": 22,
     "software": 21,
-    "dissertation": 21,
     "other": 18,
     "data-paper": 16,
     "book": 14,
     "editorial": 9,
     "conference-abstract": 8,
+    "report": 7,
     "software-paper": 7,
-    "report": 6,
     "supplementary-materials": 3,
     "retraction": 1,
     "letter": 1,
     "reference-entry": 1
   },
   "language_counts": {
-    "en": 4890,
+    "en": 4996,
     "zh": 16,
     "ja": 1
   },
