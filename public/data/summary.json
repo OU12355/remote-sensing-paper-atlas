@@ -1,21 +1,23 @@
 {
-  "generated_at": "2026-09-15T03:29:12.937Z",
-  "total": 5013,
-  "open_access": 3998,
+  "generated_at": "2026-09-16T03:27:33.646Z",
+  "total": 5801,
+  "open_access": 4408,
   "domestic_count": 758,
-  "chinese_count": 16,
-  "recent_7_days": 476,
+  "chinese_count": 146,
+  "recent_7_days": 339,
   "date_range": {
-    "earliest": "2016-09-15",
+    "earliest": "1971-01-01",
     "latest": "2027-07-15"
   },
   "sources": [
     "Crossref",
-    "OpenAlex"
+    "OpenAlex",
+    "arXiv"
   ],
   "source_counts": {
+    "Crossref": 3053,
     "OpenAlex": 2658,
-    "Crossref": 2355
+    "arXiv": 100
   },
   "domestic_source_counts": {
     "OpenAlex": 758
@@ -29,61 +31,61 @@
     },
     "OpenAlex": {
       "status": "ok",
-      "fetched": 11583
+      "fetched": 0
     },
     "Crossref": {
       "status": "ok",
-      "fetched": 15900
+      "fetched": 14481
     },
     "arXiv": {
       "status": "ok",
-      "fetched": 0
+      "fetched": 100
     }
   },
   "topics": [
     "植被与农业",
     "遥感基础",
-    "SAR / InSAR",
     "LiDAR / 点云",
+    "SAR / InSAR",
     "土壤与地质",
-    "土地与城市",
     "基础模型与 AI",
+    "土地与城市",
     "高光谱",
     "灾害与应急",
     "定标与反演",
-    "目标检测与分割",
     "无人机遥感",
-    "大气遥感",
     "冰冻圈",
+    "目标检测与分割",
+    "大气遥感",
     "变化检测",
+    "影像融合与重建",
     "海洋与水体",
-    "热红外",
-    "影像融合与重建"
+    "热红外"
   ],
   "topic_counts": {
-    "植被与农业": 1604,
-    "遥感基础": 1357,
-    "SAR / InSAR": 927,
-    "LiDAR / 点云": 876,
-    "土壤与地质": 805,
-    "土地与城市": 779,
-    "基础模型与 AI": 731,
-    "高光谱": 620,
-    "灾害与应急": 598,
-    "定标与反演": 355,
-    "目标检测与分割": 343,
-    "无人机遥感": 322,
-    "大气遥感": 309,
-    "冰冻圈": 305,
-    "变化检测": 253,
-    "海洋与水体": 219,
-    "热红外": 207,
-    "影像融合与重建": 165
+    "植被与农业": 1785,
+    "遥感基础": 1645,
+    "LiDAR / 点云": 939,
+    "SAR / InSAR": 879,
+    "土壤与地质": 843,
+    "基础模型与 AI": 812,
+    "土地与城市": 776,
+    "高光谱": 634,
+    "灾害与应急": 613,
+    "定标与反演": 431,
+    "无人机遥感": 338,
+    "冰冻圈": 326,
+    "目标检测与分割": 325,
+    "大气遥感": 234,
+    "变化检测": 231,
+    "影像融合与重建": 151,
+    "海洋与水体": 137,
+    "热红外": 126
   },
   "type_counts": {
-    "journal-article": 2355,
+    "journal-article": 3053,
     "article": 1894,
-    "preprint": 375,
+    "preprint": 465,
     "dataset": 114,
     "book-chapter": 44,
     "peer-review": 41,
@@ -104,8 +106,8 @@
     "reference-entry": 1
   },
   "language_counts": {
-    "en": 4996,
-    "zh": 16,
+    "en": 5654,
+    "zh": 146,
     "ja": 1
   },
   "update_schedule": "每天 03:17 UTC（约北京时间 11:17）"
