@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-20T03:26:52.170Z",
-  "total": 5873,
-  "open_access": 4426,
+  "generated_at": "2026-09-21T03:28:10.536Z",
+  "total": 6011,
+  "open_access": 4548,
   "domestic_count": 758,
   "chinese_count": 147,
-  "recent_7_days": 11,
+  "recent_7_days": 21,
   "date_range": {
     "earliest": "1971-01-01",
     "latest": "2027-07-15"
@@ -15,12 +15,13 @@
     "arXiv"
   ],
   "source_counts": {
-    "Crossref": 3125,
+    "Crossref": 3143,
     "OpenAlex": 2658,
-    "arXiv": 100
+    "arXiv": 252
   },
   "domestic_source_counts": {
-    "OpenAlex": 758
+    "OpenAlex": 758,
+    "arXiv": 1
   },
   "source_status": {
     "ManualImports": {
@@ -35,11 +36,11 @@
     },
     "Crossref": {
       "status": "ok",
-      "fetched": 14464
+      "fetched": 14448
     },
     "arXiv": {
       "status": "ok",
-      "fetched": 0
+      "fetched": 300
     }
   },
   "topics": [
@@ -47,8 +48,8 @@
     "遥感基础",
     "LiDAR / 点云",
     "SAR / InSAR",
-    "土壤与地质",
     "基础模型与 AI",
+    "土壤与地质",
     "土地与城市",
     "高光谱",
     "灾害与应急",
@@ -58,34 +59,34 @@
     "目标检测与分割",
     "变化检测",
     "大气遥感",
-    "海洋与水体",
     "影像融合与重建",
+    "海洋与水体",
     "热红外"
   ],
   "topic_counts": {
-    "植被与农业": 1800,
-    "遥感基础": 1669,
-    "LiDAR / 点云": 945,
-    "SAR / InSAR": 884,
-    "土壤与地质": 848,
-    "基础模型与 AI": 816,
-    "土地与城市": 767,
-    "高光谱": 640,
-    "灾害与应急": 616,
-    "定标与反演": 440,
-    "无人机遥感": 363,
-    "冰冻圈": 309,
-    "目标检测与分割": 302,
-    "变化检测": 235,
-    "大气遥感": 234,
+    "植被与农业": 1828,
+    "遥感基础": 1696,
+    "LiDAR / 点云": 943,
+    "SAR / InSAR": 897,
+    "基础模型与 AI": 873,
+    "土壤与地质": 851,
+    "土地与城市": 784,
+    "高光谱": 644,
+    "灾害与应急": 632,
+    "定标与反演": 453,
+    "无人机遥感": 364,
+    "冰冻圈": 308,
+    "目标检测与分割": 301,
+    "变化检测": 243,
+    "大气遥感": 240,
+    "影像融合与重建": 159,
     "海洋与水体": 152,
-    "影像融合与重建": 151,
-    "热红外": 127
+    "热红外": 128
   },
   "type_counts": {
-    "journal-article": 3125,
+    "journal-article": 3148,
     "article": 1894,
-    "preprint": 465,
+    "preprint": 580,
     "dataset": 114,
     "book-chapter": 44,
     "peer-review": 41,
@@ -106,7 +107,7 @@
     "reference-entry": 1
   },
   "language_counts": {
-    "en": 5725,
+    "en": 5863,
     "zh": 147,
     "ja": 1
   },
