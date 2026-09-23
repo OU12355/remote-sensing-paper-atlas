@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-22T03:27:12.526Z",
-  "total": 6051,
-  "open_access": 4572,
+  "generated_at": "2026-09-23T03:27:18.270Z",
+  "total": 6065,
+  "open_access": 4574,
   "domestic_count": 758,
   "chinese_count": 166,
-  "recent_7_days": 13,
+  "recent_7_days": 6,
   "date_range": {
     "earliest": "1971-01-01",
     "latest": "2027-07-15"
@@ -15,7 +15,7 @@
     "arXiv"
   ],
   "source_counts": {
-    "Crossref": 3183,
+    "Crossref": 3197,
     "OpenAlex": 2658,
     "arXiv": 252
   },
@@ -36,7 +36,7 @@
     },
     "Crossref": {
       "status": "ok",
-      "fetched": 13962
+      "fetched": 14427
     },
     "arXiv": {
       "status": "ok",
@@ -64,27 +64,27 @@
     "热红外"
   ],
   "topic_counts": {
-    "植被与农业": 1841,
-    "遥感基础": 1717,
-    "LiDAR / 点云": 934,
-    "SAR / InSAR": 900,
+    "植被与农业": 1843,
+    "遥感基础": 1726,
+    "LiDAR / 点云": 949,
+    "SAR / InSAR": 892,
     "基础模型与 AI": 873,
     "土壤与地质": 853,
-    "土地与城市": 792,
+    "土地与城市": 783,
     "灾害与应急": 632,
-    "高光谱": 632,
-    "定标与反演": 457,
-    "无人机遥感": 355,
-    "冰冻圈": 314,
-    "目标检测与分割": 297,
+    "高光谱": 631,
+    "定标与反演": 458,
+    "无人机遥感": 348,
+    "冰冻圈": 316,
+    "目标检测与分割": 283,
     "变化检测": 246,
-    "大气遥感": 242,
+    "大气遥感": 244,
     "影像融合与重建": 159,
-    "海洋与水体": 137,
+    "海洋与水体": 155,
     "热红外": 128
   },
   "type_counts": {
-    "journal-article": 3188,
+    "journal-article": 3202,
     "article": 1894,
     "preprint": 580,
     "dataset": 114,
@@ -107,7 +107,7 @@
     "reference-entry": 1
   },
   "language_counts": {
-    "en": 5884,
+    "en": 5898,
     "zh": 166,
     "ja": 1
   },
